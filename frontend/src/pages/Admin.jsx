@@ -8,6 +8,7 @@ export default function Admin() {
   const { user, token } = useContext(AuthContext);
   const [movies, setMovies] = useState([]);
   const [formData, setFormData] = useState({ title: '', description: '', thumbnailUrl: '', category: '', rating: '' });
+  const [editingId, setEditingId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,11 +25,33 @@ export default function Admin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await axios.post('http://localhost:5000/api/movies', formData, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const request = editingId
+      ? axios.put(`http://localhost:5000/api/movies/${editingId}`, formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      : axios.post('http://localhost:5000/api/movies', formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+    await request;
+    setEditingId(null);
     setFormData({ title: '', description: '', thumbnailUrl: '', category: '', rating: '' });
     fetchMovies();
+  };
+
+  const handleEdit = (movie) => {
+    setEditingId(movie.id);
+    setFormData({
+      title: movie.title,
+      description: movie.description,
+      thumbnailUrl: movie.thumbnailUrl,
+      category: movie.category,
+      rating: movie.rating
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setFormData({ title: '', description: '', thumbnailUrl: '', category: '', rating: '' });
   };
 
   const handleDelete = async (id) => {
@@ -47,14 +70,15 @@ export default function Admin() {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="bg-prime-nav p-6 rounded shadow-lg lg:col-span-1 h-fit">
-            <h3 className="text-xl font-bold mb-4 text-prime-blue">Add New Movie</h3>
+            <h3 className="text-xl font-bold mb-4 text-prime-blue">{editingId ? 'Edit Movie' : 'Add New Movie'}</h3>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <input type="text" placeholder="Title" className="p-2 bg-gray-800 rounded border border-gray-700" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} required />
               <textarea placeholder="Description" className="p-2 bg-gray-800 rounded border border-gray-700 h-24" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} required></textarea>
               <input type="text" placeholder="Thumbnail URL" className="p-2 bg-gray-800 rounded border border-gray-700" value={formData.thumbnailUrl} onChange={e => setFormData({...formData, thumbnailUrl: e.target.value})} required />
               <input type="text" placeholder="Category (e.g., Top 10 with Prime)" className="p-2 bg-gray-800 rounded border border-gray-700" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} required />
               <input type="text" placeholder="Rating (e.g., U/A 16+)" className="p-2 bg-gray-800 rounded border border-gray-700" value={formData.rating} onChange={e => setFormData({...formData, rating: e.target.value})} required />
-              <button className="bg-prime-blue text-white font-bold py-2 rounded hover:bg-prime-hover mt-2">Add Movie</button>
+              <button className="bg-prime-blue text-white font-bold py-2 rounded hover:bg-prime-hover mt-2">{editingId ? 'Save Changes' : 'Add Movie'}</button>
+              {editingId && <button type="button" onClick={handleCancelEdit} className="text-gray-300 hover:text-white">Cancel edit</button>}
             </form>
           </div>
           
@@ -78,7 +102,7 @@ export default function Admin() {
                       <span className="bg-yellow-600 text-black px-2 py-1 rounded text-xs font-bold">{movie.rating}</span>
                     </td>
                     <td className="p-3 flex gap-3">
-                      <button className="text-gray-400 hover:text-white"><Edit size={18} /></button>
+                      <button aria-label={`Edit ${movie.title}`} className="text-gray-400 hover:text-white" onClick={() => handleEdit(movie)}><Edit size={18} /></button>
                       <button className="text-red-400 hover:text-red-500" onClick={() => handleDelete(movie.id)}><Trash2 size={18} /></button>
                     </td>
                   </tr>

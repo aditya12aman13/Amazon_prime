@@ -32,8 +32,19 @@ router.post('/login', async (req, res) => {
 });
 
 router.get('/profile', verifyToken, async (req, res) => {
-  const user = await User.findByPk(req.userId);
-  res.json({ id: user.id, name: user.name, email: user.email });
+  try {
+    const user = await User.findByPk(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      isSuperuser: user.isSuperuser
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 router.put('/profile', verifyToken, async (req, res) => {

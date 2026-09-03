@@ -1,4 +1,5 @@
 import { Plus, Info } from 'lucide-react';
+import PosterImage from './PosterImage';
 
 export default function HeroBanner({ movie }) {
   if (!movie) return null;
@@ -6,11 +7,7 @@ export default function HeroBanner({ movie }) {
   return (
     <div className="relative h-[80vh] w-full">
       <div className="absolute inset-0">
-        <img 
-          src={movie.thumbnailUrl} 
-          alt={movie.title} 
-          className="w-full h-full object-cover"
-        />
+        <PosterImage movie={movie} className="h-full rounded-none object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-prime-dark via-prime-dark/70 to-transparent"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-prime-dark via-transparent to-transparent"></div>
       </div>
